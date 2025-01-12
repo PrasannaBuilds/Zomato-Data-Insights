@@ -205,10 +205,13 @@ class DataHandler:
     def dynamic_read(conn, table):
         columns = DataHandler.get_columns(conn, table)
         cur = conn.cursor()
-        cur.execute(f"SELECT {', '.join(columns)} FROM {table}")
+        primary_key_column = columns[0]  # Assuming the first column is the primary key
+        query = f"SELECT {', '.join(columns)} FROM {table} ORDER BY {primary_key_column}"
+        cur.execute(query)
         rows = cur.fetchall()
         cur.close()
         return rows, columns
+
 
     @staticmethod
     def dynamic_insert(conn, table, values):
