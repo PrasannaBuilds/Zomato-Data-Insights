@@ -299,19 +299,16 @@ class Application:
             st.error("Database connection could not be established.")
             return
 
-        # App Header
-        st.set_page_config(page_title="Zomato Data Management", page_icon="🍴", layout="wide")
-        st.title("🍴 Zomato Data Management System")
-        st.markdown(
-            "Welcome to the Zomato Data Management System! Navigate through the menu to add, manage, and analyze data."
-        )
+        #Header
+        st.set_page_config(page_title="Zomato Data Insights", page_icon="🍴", layout="wide")
+        st.title("🍴 Zomato Data Insights")
 
-        # Sidebar Menu
+        #Menu
         menu = ["Home", "Add Data", "Manage Data", "Data Analysis"]
         choice = st.sidebar.selectbox("Menu", menu)
 
         if choice == "Home":
-            st.subheader("Welcome to Zomato Data Management!")
+            st.subheader("Welcome to Zomato Data Management System!")
             st.write("Use the navigation menu on the left to explore different sections of the application.")
             lottie_animation = self.load_lottie_url("https://assets3.lottiefiles.com/packages/lf20_3rwasyjy.json")
             if lottie_animation:
@@ -329,46 +326,44 @@ class Application:
             tables = DataHandler.get_tables(self.conn)
             if tables:
                 selected_table = st.selectbox("Select a Table to Manage", tables)
+                operation = st.selectbox("Select Operation", ["View Data", "Insert Data", "Update Data", "Delete Data"])
 
-                # Layout for managing data
-                col1, col2 = st.columns(2)
-
-                # View data
-                with col1:
-                    if st.button(f"View Data in {selected_table}"):
+                if operation == "View Data":
+                    st.subheader(f"View Data in {selected_table}")
+                    if st.button("Load Data"):
                         data, columns = DataHandler.dynamic_read(self.conn, selected_table)
                         if data:
                             st.dataframe(pd.DataFrame(data, columns=columns))
                         else:
                             st.warning(f"No data available in {selected_table}.")
 
-                # Insert data
-                with col2:
-                    st.subheader(f"Insert Data into {selected_table}")
+                elif operation == "Insert Data":
+                    st.subheader(f"Insert New Data into {selected_table}")
                     columns = DataHandler.get_columns(self.conn, selected_table)
-                    values = [st.text_input(f"Enter value for {col}") for col in columns]
+                    values = [st.text_input(f"Value for {col}") for col in columns]
                     if st.button("Insert Data"):
                         DataHandler.dynamic_insert(self.conn, selected_table, values)
                         st.success("Data inserted successfully!")
 
-                # Update data
-                st.subheader(f"Update Data in {selected_table}")
-                primary_key = columns[0]
-                primary_key_value = st.text_input(f"Enter Primary Key Value ({primary_key})")
-                column_to_update = st.selectbox("Select Column to Update", columns[1:])
-                new_value = st.text_input(f"Enter New Value for {column_to_update}")
-                if st.button("Update Record"):
-                    DataHandler.dynamic_update(
-                        self.conn, selected_table, primary_key, primary_key_value, column_to_update, new_value
-                    )
-                    st.success("Record updated successfully!")
+                elif operation == "Update Data":
+                    st.subheader(f"Update Data in {selected_table}")
+                    columns = DataHandler.get_columns(self.conn, selected_table)
+                    primary_key = columns[0]
+                    primary_key_value = st.text_input(f"Primary Key ({primary_key}) Value")
+                    column_to_update = st.selectbox("Column to Update", columns[1:])
+                    new_value = st.text_input(f"New Value for {column_to_update}")
+                    if st.button("Update Record"):
+                        DataHandler.dynamic_update(self.conn, selected_table, primary_key, primary_key_value, column_to_update, new_value)
+                        st.success("Record updated successfully!")
 
-                # Delete data
-                st.subheader(f"Delete Data from {selected_table}")
-                primary_key_value_to_delete = st.text_input(f"Enter {primary_key} of the Record to Delete")
-                if st.button("Delete Record"):
-                    DataHandler.dynamic_delete(self.conn, selected_table, primary_key, primary_key_value_to_delete)
-                    st.success("Record deleted successfully!")
+                elif operation == "Delete Data":
+                    st.subheader(f"Delete Data from {selected_table}")
+                    columns = DataHandler.get_columns(self.conn, selected_table)
+                    primary_key = columns[0]
+                    primary_key_value = st.text_input(f"Enter {primary_key} of the Record to Delete")
+                    if st.button("Delete Record"):
+                        DataHandler.dynamic_delete(self.conn, selected_table, primary_key, primary_key_value)
+                        st.success("Record deleted successfully!")
 
         elif choice == "Data Analysis":
             st.subheader("Perform Data Analysis")
